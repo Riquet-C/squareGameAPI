@@ -1,0 +1,19 @@
+meta {
+  name: postGame
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/games
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "gameName":"tictactoe",
+    "playerCount":2,
+    "boardSize":3
+  }
+}

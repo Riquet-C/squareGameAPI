@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.HeartbeatSensor;
+import com.example.demo.service.HeartbeatSensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,8 +12,7 @@ public class HeartbeatController {
     private HeartbeatSensor heartbeatSensor;
 
     @GetMapping("/heartbeat")
-        public int getHeartbeat() {
-            return this.heartbeatSensor.get();
-        }
-
+    public int getHeartbeat() {
+        return this.heartbeatSensor.get();
+    }
 }
