@@ -1,16 +1,17 @@
 package com.example.demo.service;
 
-import fr.le_campus_numerique.square_games.engine.Game;
-import fr.le_campus_numerique.square_games.engine.GameFactory;
+import fr.le_campus_numerique.square_games.engine.*;
 import fr.le_campus_numerique.square_games.engine.connectfour.ConnectFourGameFactory;
 import fr.le_campus_numerique.square_games.engine.taquin.TaquinGameFactory;
 import fr.le_campus_numerique.square_games.engine.tictactoe.TicTacToeGameFactory;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.stream.Stream;
+
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -31,6 +32,7 @@ public class GameServiceImpl implements GameService {
         return games.get(game.getId().toString());
     }
 
+    @Override
     public Game getGame(String gameId){
         return games.get(gameId);
     }
@@ -38,6 +40,28 @@ public class GameServiceImpl implements GameService {
     @Override
     public Map<String, Game> getAllGames() {
         return games;
+    }
+
+    @Override
+    public void deleteGame(String gameId) {
+        games.remove(gameId);
+    }
+
+    @Override
+    public Object moveToken(String gameId, String tokenId, CellPosition cellPosition) throws InvalidPositionException {
+        Game game = getGame(gameId);
+        @NotNull Token token = getTokenToMove(game, tokenId);
+        token.moveTo(cellPosition);
+        return token.getPosition();
+    }
+
+    private Token getTokenToMove(Game game, String tokenId) {
+        return Stream.of(game.getRemainingTokens(), game.getRemovedTokens(), game.getBoard().values())
+                .flatMap(Collection::stream)
+                .filter(token -> token.getName().equals(tokenId))
+                .filter(Token::canMove)
+                .findFirst()
+                .orElse(null);
     }
 
 }
