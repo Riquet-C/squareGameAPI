@@ -1,15 +1,12 @@
 package com.example.demo.service;
 
+import com.example.demo.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
-import fr.le_campus_numerique.square_games.engine.connectfour.ConnectFourGameFactory;
-import fr.le_campus_numerique.square_games.engine.taquin.TaquinGameFactory;
-import fr.le_campus_numerique.square_games.engine.tictactoe.TicTacToeGameFactory;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
+import java.util.*;
 import java.util.stream.Stream;
 
 
@@ -17,17 +14,18 @@ import java.util.stream.Stream;
 public class GameServiceImpl implements GameService {
 
     private final Map<String, Game> games = new HashMap<>();
+    private final Map<String, GamePlugin> plugins = new HashMap<>();
+
+    public GameServiceImpl(List<GamePlugin> gamePlugins) {
+        for (GamePlugin gamePlugin : gamePlugins) {
+            plugins.put(gamePlugin.getName(Locale.FRANCE).toLowerCase(), gamePlugin);
+        }
+    }
 
     @Override
-    public Game initializeGame(String gameName, int playerCount, int boardSize) {
-        GameFactory gameFactory = null;
-        switch (gameName.toLowerCase()) {
-            case ("tictactoe") -> gameFactory = new TicTacToeGameFactory();
-            case ("15 puzzle") -> gameFactory =  new TaquinGameFactory();
-            case ("connect4") -> gameFactory = new ConnectFourGameFactory();
-        }
-        assert gameFactory != null;
-        Game game = gameFactory.createGame(playerCount, boardSize);
+    public Game initializeGame(String gameName) {
+        GamePlugin plugin = plugins.get(gameName.toLowerCase());
+        Game game = plugin.createGame();
         games.put(game.getId().toString(), game);
         return games.get(game.getId().toString());
     }

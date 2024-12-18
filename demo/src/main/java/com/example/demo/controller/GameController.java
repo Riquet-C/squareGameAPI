@@ -13,12 +13,15 @@ import java.util.Map;
 @RestController
 public class GameController {
 
-    @Autowired
-    private GameService gameService;
+    private final GameService gameService;
+
+    public GameController(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     @PostMapping("/games")
     public Game createGame(@RequestBody GameCreationParams params) {
-        return gameService.initializeGame(params.gameName, params.playerCount, params.boardSize);
+        return gameService.initializeGame(params.gameName);
     }
 
     @GetMapping("/games/{gameId}")
