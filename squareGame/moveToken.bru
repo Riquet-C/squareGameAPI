@@ -5,7 +5,14 @@ meta {
 }
 
 put {
-  url: /games/{gameId}/tokens/{tokenId}/position
-  body: none
+  url: http://localhost:8080/games/6d07176e-d3ab-4647-9bb9-c3f2239c1347/tokens/p/position
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "x" : 0,
+    "y" : 0
+  }
 }

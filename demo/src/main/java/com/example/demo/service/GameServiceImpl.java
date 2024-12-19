@@ -1,9 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.dao.GameDao;
 import com.example.demo.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Locale;
 import java.util.*;
@@ -13,36 +14,36 @@ import java.util.stream.Stream;
 @Service
 public class GameServiceImpl implements GameService {
 
-    private final Map<String, Game> games = new HashMap<>();
-    private final Map<String, GamePlugin> plugins = new HashMap<>();
+    @Autowired
+    private GameDao gameDao;
+    private final List<GamePlugin> gamePlugins;
 
     public GameServiceImpl(List<GamePlugin> gamePlugins) {
-        for (GamePlugin gamePlugin : gamePlugins) {
-            plugins.put(gamePlugin.getName(Locale.FRANCE).toLowerCase(), gamePlugin);
-        }
+        this.gamePlugins = gamePlugins;
     }
 
     @Override
-    public Game initializeGame(String gameName) {
-        GamePlugin plugin = plugins.get(gameName.toLowerCase());
-        Game game = plugin.createGame();
-        games.put(game.getId().toString(), game);
-        return games.get(game.getId().toString());
+    public Game initializeGame(String gameName, Locale locale) {
+        return gamePlugins.stream()
+                .filter(item -> item.getName(locale).equals(gameName))
+                .findFirst()
+                .map(GamePlugin::createGame)
+                .orElse(null); //si map est vide
     }
 
     @Override
     public Game getGame(String gameId){
-        return games.get(gameId);
+        return gameDao.get(gameId);
     }
 
     @Override
     public Map<String, Game> getAllGames() {
-        return games;
+        return gameDao.getAll();
     }
 
     @Override
     public void deleteGame(String gameId) {
-        games.remove(gameId);
+        gameDao.removeById(gameId);
     }
 
     @Override
@@ -53,6 +54,7 @@ public class GameServiceImpl implements GameService {
         return token.getPosition();
     }
 
+
     private Token getTokenToMove(Game game, String tokenId) {
         return Stream.of(game.getRemainingTokens(), game.getRemovedTokens(), game.getBoard().values())
                 .flatMap(Collection::stream)
@@ -61,6 +63,5 @@ public class GameServiceImpl implements GameService {
                 .findFirst()
                 .orElse(null);
     }
-
 }
 

@@ -5,8 +5,9 @@ import com.example.demo.service.GameService;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
 import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -20,8 +21,8 @@ public class GameController {
     }
 
     @PostMapping("/games")
-    public Game createGame(@RequestBody GameCreationParams params) {
-        return gameService.initializeGame(params.gameName);
+    public Game createGame(@RequestBody GameCreationParams params, Locale locale) {
+        return gameService.initializeGame(params.gameName, locale);
     }
 
     @GetMapping("/games/{gameId}")
