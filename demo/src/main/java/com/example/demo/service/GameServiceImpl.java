@@ -1,11 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.dao.GameDao;
+import com.example.demo.dao.inMemoryGame.GameDaoMemory;
 import com.example.demo.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.Locale;
 import java.util.*;
 import java.util.stream.Stream;
@@ -14,46 +14,51 @@ import java.util.stream.Stream;
 @Service
 public class GameServiceImpl implements GameService {
 
-    @Autowired
-    private GameDao gameDao;
     private final List<GamePlugin> gamePlugins;
+    private final GameDaoMemory gameDaoMemory;
 
-    public GameServiceImpl(List<GamePlugin> gamePlugins) {
+    public GameServiceImpl(List<GamePlugin> gamePlugins, GameDaoMemory gameDaoMemory) {
         this.gamePlugins = gamePlugins;
+        this.gameDaoMemory = gameDaoMemory;
     }
 
     @Override
     public Game initializeGame(String gameName, Locale locale) {
-        return gamePlugins.stream()
+        Optional<Game> gameOptional = gamePlugins.stream()
                 .filter(item -> item.getName(locale).equals(gameName))
                 .findFirst()
-                .map(GamePlugin::createGame)
-                .orElse(null); //si map est vide
+                .map(GamePlugin::createGame);
+        if (gameOptional.isPresent()) {
+            Game game = gameOptional.get();
+            gameDaoMemory.add(game);
+            return game;
+        }
+        return null;
     }
 
     @Override
-    public Game getGame(String gameId){
-        return gameDao.get(gameId);
+    public Game getGame(String gameId) {
+        return gameDaoMemory.get(gameId);
     }
 
     @Override
-    public Map<String, Game> getAllGames() {
-        return gameDao.getAll();
+    public List<Game> getAllGames() {
+        return gameDaoMemory.getAll();
     }
 
     @Override
     public void deleteGame(String gameId) {
-        gameDao.removeById(gameId);
+        gameDaoMemory.removeById(gameId);
     }
 
+
     @Override
-    public Object moveToken(String gameId, String tokenId, CellPosition cellPosition) throws InvalidPositionException {
+    public Game moveToken(String gameId, String tokenId, CellPosition cellPosition) throws InvalidPositionException {
         Game game = getGame(gameId);
         @NotNull Token token = getTokenToMove(game, tokenId);
         token.moveTo(cellPosition);
-        return token.getPosition();
+        return null;
     }
-
 
     private Token getTokenToMove(Game game, String tokenId) {
         return Stream.of(game.getRemainingTokens(), game.getRemovedTokens(), game.getBoard().values())

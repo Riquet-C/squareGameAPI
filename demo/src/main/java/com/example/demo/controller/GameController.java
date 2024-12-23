@@ -7,8 +7,10 @@ import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 
 @RestController
@@ -31,7 +33,7 @@ public class GameController {
     }
 
     @GetMapping("/games")
-    public Map<String, Game> getExistingGames() {
+    public List<Game> getExistingGames() {
         return gameService.getAllGames();
     }
 

@@ -1,12 +1,13 @@
-package com.example.demo.dao;
+package com.example.demo.dao.inMemoryGame;
 
 import fr.le_campus_numerique.square_games.engine.Game;
 import org.springframework.stereotype.Repository;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
-public class InMemoryGameDao implements GameDao {
+public class InMemoryGameDaoMemory implements GameDaoMemory {
     private final Map<String, Game> games = new HashMap<>();
 
     @Override
@@ -15,19 +16,18 @@ public class InMemoryGameDao implements GameDao {
     }
 
     @Override
-    public Game get(String gameID) {
-        return games.get(gameID);
+    public Game get(String id) {
+        return games.get(id);
     }
 
     @Override
-    public Map<String, Game> getAll() {
-        return games;
+    public List<Game> getAll() {
+        return games.values().stream().toList();
     }
 
     @Override
     public void removeById(String gameId) {
         games.remove(gameId);
     }
-
 
 }

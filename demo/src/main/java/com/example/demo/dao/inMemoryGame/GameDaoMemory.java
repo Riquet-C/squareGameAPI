@@ -1,12 +1,13 @@
-package com.example.demo.dao;
+package com.example.demo.dao.inMemoryGame;
 
 import fr.le_campus_numerique.square_games.engine.Game;
 
+import java.util.List;
 import java.util.Map;
 
-public interface GameDao {
+public interface GameDaoMemory {
     void add(Game game);
     Game get(String id);
-    Map<String, Game> getAll();
+    List<Game> getAll();
     void removeById(String id);
 }
