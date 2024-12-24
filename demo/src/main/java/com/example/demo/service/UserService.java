@@ -13,4 +13,6 @@ public interface UserService {
     UserEntity updateUser(int userId, UserEntity userEntity);
 
     void deleteUser(int userId);
+
+    UserEntity getUserByUsername(String username);
 }

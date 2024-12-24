@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+// @Repository
 public class userInMemory implements UserDao{
 
     private final List<UserEntity> users = new ArrayList<>();

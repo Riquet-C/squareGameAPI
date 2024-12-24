@@ -1,15 +1,27 @@
 package com.example.demo.dto;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+@Entity
 public class UserEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public int id;
+
+    @Column(nullable = false)
+    @NotBlank(message = "User name cannot be blank")
     public String userName;
+
+    @Column(nullable = false)
+    @NotBlank(message = "Password cannot be blank")
     public String password;
+
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "Email should be valid")
     public String email;
-
-    public UserEntity() {
-
-    }
 
     public int getId() {
         return id;
