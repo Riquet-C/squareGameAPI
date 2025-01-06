@@ -6,8 +6,6 @@ import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public interface GameService {
     Game initializeGame(String gameName, Locale locale);
