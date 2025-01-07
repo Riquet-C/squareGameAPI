@@ -1,15 +1,16 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.GameCreationParams;
+import com.example.demo.dto.GamesEntity;
 import com.example.demo.service.GameService;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
 import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 
@@ -28,12 +29,12 @@ public class GameController {
     }
 
     @GetMapping("/games/{gameId}")
-    public Game getGame(@PathVariable String gameId) {
-        return gameService.getGame(gameId);
+    public ResponseEntity<Game> getGame(@PathVariable UUID gameId) {
+        return ResponseEntity.ok(gameService.getGame(gameId));
     }
 
     @GetMapping("/games")
-    public List<Game> getExistingGames() {
+    public List<UUID> getExistingGames() {
         return gameService.getAllGames();
     }
 
@@ -44,7 +45,7 @@ public class GameController {
     }
 
     @DeleteMapping("/games/{gameId}")
-    public void deleteGame(@PathVariable String gameId) {
+    public void deleteGame(@PathVariable UUID gameId) {
         gameService.deleteGame(gameId);
     }
 

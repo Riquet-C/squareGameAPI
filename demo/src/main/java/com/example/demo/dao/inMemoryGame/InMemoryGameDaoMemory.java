@@ -16,7 +16,7 @@ public class InMemoryGameDaoMemory implements GameDaoMemory {
     }
 
     @Override
-    public Game get(String id) {
+    public Game findById(String id) {
         return games.get(id);
     }
 

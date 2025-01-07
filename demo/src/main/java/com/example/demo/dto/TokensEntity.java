@@ -1,18 +1,20 @@
 package com.example.demo.dto;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
 public class TokensEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "player_id", nullable = false) // Nom explicite pour la colonne de clé étrangère
+    @JoinColumn(name = "player_id", referencedColumnName = "id")
     private PlayersEntity player;
 
     private boolean isPlayed;
@@ -23,13 +25,21 @@ public class TokensEntity {
 
     private String tokenName;
 
+    public void setGame(GamesEntity game) {
+        this.game = game;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "games_id", referencedColumnName = "id")
+    private GamesEntity game;
+
     // Getters et setters
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setId(@NotNull Optional<UUID> id) {
+        this.id = id.orElse(null);
     }
 
     public PlayersEntity getPlayer() {

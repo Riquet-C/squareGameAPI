@@ -9,10 +9,11 @@ import java.util.UUID;
 public class PlayersEntity {
 
     @Id
-    private UUID playerId;
+    @Column(name = "id")
+    private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "game_id", nullable = false) // Nom explicite pour la colonne de clé étrangère
+    @JoinColumn(name = "game_id", referencedColumnName = "id")
     private GamesEntity game;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -20,11 +21,11 @@ public class PlayersEntity {
 
     // Getters et setters
     public UUID getPlayerId() {
-        return playerId;
+        return id;
     }
 
     public void setPlayerId(UUID playerId) {
-        this.playerId = playerId;
+        this.id = playerId;
     }
 
     public GamesEntity getGame() {

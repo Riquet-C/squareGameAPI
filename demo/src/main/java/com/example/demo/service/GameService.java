@@ -6,11 +6,12 @@ import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 public interface GameService {
     Game initializeGame(String gameName, Locale locale);
-    Game getGame(String gameId);
-    List<Game> getAllGames();
-    void deleteGame(String gameId);
+    Game getGame(UUID gameId);
+    List<UUID> getAllGames();
+    void deleteGame(UUID gameId);
     Object moveToken(String gameId, String tokenId, CellPosition cellPosition) throws InvalidPositionException;
 }

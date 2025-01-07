@@ -3,15 +3,14 @@ package com.example.demo.dto;
 import jakarta.persistence.*;
 
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 @Entity
 public class GamesEntity {
 
     @Id
-    @Column(nullable = false, unique = true)
-    private UUID gamesId;
+    @Column(name = "id", nullable = false, unique = true)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
     private String gameType;
@@ -20,15 +19,18 @@ public class GamesEntity {
     private int boardSize;
 
     @OneToMany(mappedBy = "game",  cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PlayersEntity> players = new HashSet<>();
+    private List<PlayersEntity> players = new ArrayList<>();
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<TokensEntity> tokens = new ArrayList<>();
 
     // Getters et setters
     public UUID getGamesId() {
-        return gamesId;
+        return id;
     }
 
     public void setGamesId(UUID gamesId) {
-        this.gamesId = gamesId;
+        this.id = gamesId;
     }
 
     public String getGameType() {
@@ -47,11 +49,19 @@ public class GamesEntity {
         this.boardSize = boardSize;
     }
 
-    public Set<PlayersEntity> getPlayers() {
+    public List<PlayersEntity> getPlayers() {
         return players;
     }
 
-    public void setPlayers(Set<PlayersEntity> players) {
+    public void setPlayers(List<PlayersEntity> players) {
         this.players = players;
+    }
+
+    public Collection<TokensEntity> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(Collection<TokensEntity> tokens) {
+        this.tokens = tokens;
     }
 }

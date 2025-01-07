@@ -28,7 +28,7 @@ public class JdbcGameDaoMemory implements GameDaoMemory {
     }
 
     @Override
-    public Game get(String id) {
+    public Game findById(String id) {
         String sql = "SELECT uuid, name, boardSize FROM games WHERE uuid = :uuid";
         Map<String, Object> params = new HashMap<>();
         params.put("uuid", id);

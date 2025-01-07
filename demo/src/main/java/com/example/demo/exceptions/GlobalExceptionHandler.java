@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(InvalidPositionException.class)
     public ResponseEntity<String> handleInvalidPositionException(InvalidPositionException ex) {
         return ResponseEntity
