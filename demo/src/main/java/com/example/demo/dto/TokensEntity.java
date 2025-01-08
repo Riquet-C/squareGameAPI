@@ -10,6 +10,7 @@ import java.util.UUID;
 public class TokensEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private UUID id;
 
@@ -19,9 +20,15 @@ public class TokensEntity {
 
     private boolean isPlayed;
 
-    private int positionX;
+    public void setOwnerId(Optional<UUID> ownerId) {
+        this.ownerId = ownerId.orElse(null);
+    }
 
-    private int positionY;
+    private UUID ownerId;
+
+    private Integer positionX;
+
+    private Integer positionY;
 
     private String tokenName;
 
@@ -36,10 +43,6 @@ public class TokensEntity {
     // Getters et setters
     public UUID getId() {
         return id;
-    }
-
-    public void setId(@NotNull Optional<UUID> id) {
-        this.id = id.orElse(null);
     }
 
     public PlayersEntity getPlayer() {
@@ -80,6 +83,10 @@ public class TokensEntity {
 
     public void setTokenName(String tokenName) {
         this.tokenName = tokenName;
+    }
+
+    public UUID getOwnerId() {
+        return ownerId;
     }
 }
 

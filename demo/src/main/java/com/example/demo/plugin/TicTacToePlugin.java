@@ -33,7 +33,8 @@ public class TicTacToePlugin implements GamePlugin {
 
     @Override
     public String getName(Locale locale) {
-        return messageSource.getMessage("game.tictactoe.name", null, locale);
+        System.out.println(messageSource.getMessage("game.tictactoe.name".toLowerCase(Locale.ENGLISH), null, locale));
+        return messageSource.getMessage("game.tictactoe.name".toLowerCase(Locale.ENGLISH), null, locale);
     }
 
     @Override

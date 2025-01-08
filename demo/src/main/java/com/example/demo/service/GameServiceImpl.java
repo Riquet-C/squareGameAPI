@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 
@@ -22,9 +23,9 @@ public class GameServiceImpl implements GameService {
 
     private final List<GamePlugin> gamePlugins;
     private final GameDaoMemory gameDaoMemory;
-    private GameDaoJpa gameDaoJpa;
-    private PlayerDaoJpa playerDaoJpa;
-    private TokensDaoJpa tokensDaoJpa;
+    private final GameDaoJpa gameDaoJpa;
+    private final PlayerDaoJpa playerDaoJpa;
+    private final TokensDaoJpa tokensDaoJpa;
 
     public GameServiceImpl(List<GamePlugin> gamePlugins, GameDaoMemory gameDaoMemory, GameDaoJpa gameDaoJpa, PlayerDaoJpa playerDaoJpa, TokensDaoJpa tokensDaoJpa) {
         this.gamePlugins = gamePlugins;
@@ -49,46 +50,56 @@ public class GameServiceImpl implements GameService {
         return null;
     }
 
+    private List<UUID> findPlayersId(GamesEntity gamesEntity) {
+        return  gamesEntity.getPlayers().stream()
+                .map(PlayersEntity::getPlayerId)
+                .toList();
+
+    }
+
+    private Collection<TokenPosition<UUID>> extractRemainingTokens(GamesEntity gamesEntity) {
+        return gamesEntity.getTokens().stream()
+                .filter(token -> token.isPlayed())
+                .map(token -> new TokenPosition<>(token.getOwnerId(), token.getTokenName(), token.getPositionX(), token.getPositionY()))
+                .toList();
+    }
+
+    private Collection<TokenPosition<UUID>> extractRemovedTokens(GamesEntity gamesEntity) {
+        return List.of();
+    }
+
+    private Game createGameUsingPlugin(UUID gameId, Locale locale, String gameName, int boardSize,
+                                       List<UUID> playersId, Collection<TokenPosition<UUID>> remainingTokensId,
+                                       Collection<TokenPosition<UUID>> removedTokensId) {
+        return gamePlugins.stream()
+                .filter(gamePlugin -> Objects.equals(gamePlugin.getName(Locale.ENGLISH), gameName))
+                .findFirst()
+                .map(gamePlugin -> {
+                    try {
+                        return gamePlugin.createGameWithId(gameId, boardSize, playersId, remainingTokensId, removedTokensId);
+                    } catch (InconsistentGameDefinitionException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElse(null);
+    }
+
     private Game createGameFromData(UUID gameId, Locale locale) {
-        gameDaoJpa.findById(gameId).ifPresent(gameDao -> {
-            String gameName = gameDao.getGameType();
+        Optional<GamesEntity> gameDaoJpaById = gameDaoJpa.findById(gameId);
 
-            int boardSize = gameDao.getBoardSize();
+        GamesEntity gameEntity = gameDaoJpaById.get();
+        String gameName = gameEntity.getGameType();
+        int boardSize = gameEntity.getBoardSize();
+        List<UUID> playersId = findPlayersId(gameEntity);
+        Collection<TokenPosition<UUID>> extractRemovedTokens = extractRemovedTokens(gameEntity);
+        Collection<TokenPosition<UUID>> extractRemainingTokens = extractRemainingTokens(gameEntity);
 
-            List<UUID> playersId = gameDao.getPlayers().stream()
-                    .map(PlayersEntity::getPlayerId)
-                    .toList();
-
-            Collection<TokensEntity> tokens = gameDao.getTokens();
-
-            Collection<TokenPosition<UUID>> remainingTokensId = tokens.stream()
-                    .filter(TokensEntity::isPlayed)
-                    .map(token -> new TokenPosition<>(token.getId(), token.getTokenName(), token.getPositionX(), token.getPositionY()))
-                    .toList();
-
-            Collection<TokenPosition<UUID>> removedTokensId = tokens.stream()
-                    .filter(token -> !token.isPlayed())
-                    .map(token -> new TokenPosition<>(token.getId(), token.getTokenName(), token.getPositionX(), token.getPositionY()))
-                    .toList();
-
-            gamePlugins.stream()
-                    .filter(gamePlugin -> Objects.equals(gamePlugin.getName(locale), gameName))
-                    .map(gamePlugin -> {
-                        System.out.println("I'm here");
-                        Game game;
-                        try {
-                            game = gamePlugin.createGameWithId(gameId, boardSize, playersId, remainingTokensId, removedTokensId);
-                        } catch (InconsistentGameDefinitionException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return game;
-                    });
-        });
-        return null;
+        return createGameUsingPlugin(gameId, locale, gameName, boardSize, playersId, extractRemovedTokens, extractRemainingTokens);
     }
 
     private void saveGameData(Game game) {
         GamesEntity gamesEntity = new GamesEntity();
+
 
         gamesEntity.setGamesId(game.getId());
         gamesEntity.setBoardSize(game.getBoardSize());
@@ -103,7 +114,7 @@ public class GameServiceImpl implements GameService {
 
             for (Token token : game.getRemovedTokens()){
                 TokensEntity tokenEntity = new TokensEntity();
-                tokenEntity.setId(token.getOwnerId());
+                tokenEntity.setOwnerId(token.getOwnerId());
                 tokenEntity.setTokenName(token.getName());
                 tokenEntity.setPositionX(token.getPosition().x());
                 tokenEntity.setPositionY(token.getPosition().y());
@@ -115,12 +126,10 @@ public class GameServiceImpl implements GameService {
 
         for (Token token : game.getRemainingTokens()) {
             TokensEntity tokenEntity = new TokensEntity();
-            tokenEntity.setId(token.getOwnerId());
+            tokenEntity.setOwnerId(token.getOwnerId());
             tokenEntity.setTokenName(token.getName());
             tokenEntity.setPlayed(false);
             tokenEntity.setGame(gamesEntity);
-            tokenEntity.setPositionX(-1);
-            tokenEntity.setPositionY(-1);
             tokensDaoJpa.save(tokenEntity);
         }
     }
