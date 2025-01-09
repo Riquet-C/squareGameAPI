@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 
@@ -23,16 +22,12 @@ public class GameServiceImpl implements GameService {
 
     private final List<GamePlugin> gamePlugins;
     private final GameDaoMemory gameDaoMemory;
-    private final GameDaoJpa gameDaoJpa;
-    private final PlayerDaoJpa playerDaoJpa;
-    private final TokensDaoJpa tokensDaoJpa;
+    private final GameDaoJpa gameDaoJpa;;
 
-    public GameServiceImpl(List<GamePlugin> gamePlugins, GameDaoMemory gameDaoMemory, GameDaoJpa gameDaoJpa, PlayerDaoJpa playerDaoJpa, TokensDaoJpa tokensDaoJpa) {
+    public GameServiceImpl(List<GamePlugin> gamePlugins, GameDaoMemory gameDaoMemory, GameDaoJpa gameDaoJpa) {
         this.gamePlugins = gamePlugins;
         this.gameDaoJpa = gameDaoJpa;
         this.gameDaoMemory = gameDaoMemory;
-        this.playerDaoJpa = playerDaoJpa;
-        this.tokensDaoJpa = tokensDaoJpa;
     }
 
     @Override
@@ -57,14 +52,14 @@ public class GameServiceImpl implements GameService {
 
     }
 
-    private Collection<TokenPosition<UUID>> extractRemainingTokens(GamesEntity gamesEntity) {
+    private Collection<TokenPosition<UUID>> extractBoardTokens(GamesEntity gamesEntity) {
         return gamesEntity.getTokens().stream()
                 .filter(token -> token.isPlayed())
                 .map(token -> new TokenPosition<>(token.getOwnerId(), token.getTokenName(), token.getPositionX(), token.getPositionY()))
                 .toList();
     }
 
-    private Collection<TokenPosition<UUID>> extractRemovedTokens(GamesEntity gamesEntity) {
+    private Collection<TokenPosition<UUID>> extractRemovedTokens() {
         return List.of();
     }
 
@@ -91,47 +86,48 @@ public class GameServiceImpl implements GameService {
         String gameName = gameEntity.getGameType();
         int boardSize = gameEntity.getBoardSize();
         List<UUID> playersId = findPlayersId(gameEntity);
-        Collection<TokenPosition<UUID>> extractRemovedTokens = extractRemovedTokens(gameEntity);
-        Collection<TokenPosition<UUID>> extractRemainingTokens = extractRemainingTokens(gameEntity);
+        Collection<TokenPosition<UUID>> extractRemovedTokens = extractRemovedTokens();
+        Collection<TokenPosition<UUID>> extractRemainingTokens = extractBoardTokens(gameEntity);
 
-        return createGameUsingPlugin(gameId, locale, gameName, boardSize, playersId, extractRemovedTokens, extractRemainingTokens);
+        return createGameUsingPlugin(gameId, locale, gameName, boardSize, playersId, extractRemainingTokens, extractRemovedTokens);
     }
 
     private void saveGameData(Game game) {
         GamesEntity gamesEntity = new GamesEntity();
 
-
         gamesEntity.setGamesId(game.getId());
         gamesEntity.setBoardSize(game.getBoardSize());
         gamesEntity.setGameType(game.getFactoryId());
-        gameDaoJpa.save(gamesEntity);
 
+
+        //set player
         for (UUID playerId : game.getPlayerIds()) {
             PlayersEntity playerEntity = new PlayersEntity();
             playerEntity.setPlayerId(playerId);
             playerEntity.setGame(gamesEntity);
-            playerDaoJpa.save(playerEntity);
-
-            for (Token token : game.getRemovedTokens()){
-                TokensEntity tokenEntity = new TokensEntity();
-                tokenEntity.setOwnerId(token.getOwnerId());
-                tokenEntity.setTokenName(token.getName());
-                tokenEntity.setPositionX(token.getPosition().x());
-                tokenEntity.setPositionY(token.getPosition().y());
-                tokenEntity.setPlayed(true);
-                tokenEntity.setPlayer(playerEntity);
-                tokensDaoJpa.save(tokenEntity);
-            }
+            gamesEntity.getPlayers().add(playerEntity);
         }
 
+        // set played token
+        for (Token token : game.getBoard().values()) {
+            TokensEntity tokenEntity = new TokensEntity();
+            tokenEntity.setOwnerId(token.getOwnerId());
+            tokenEntity.setTokenName(token.getName());
+            tokenEntity.setPositionX(token.getPosition().x());
+            tokenEntity.setPositionY(token.getPosition().y());
+            tokenEntity.setPlayed(true);
+            gamesEntity.getTokens().add(tokenEntity);
+        }
+
+        //set unplayed token
         for (Token token : game.getRemainingTokens()) {
             TokensEntity tokenEntity = new TokensEntity();
             tokenEntity.setOwnerId(token.getOwnerId());
             tokenEntity.setTokenName(token.getName());
             tokenEntity.setPlayed(false);
-            tokenEntity.setGame(gamesEntity);
-            tokensDaoJpa.save(tokenEntity);
+            gamesEntity.getTokens().add(tokenEntity);
         }
+        gameDaoJpa.save(gamesEntity);
     }
 
     @Override
@@ -155,22 +151,10 @@ public class GameServiceImpl implements GameService {
         Game game = getGame(UUID.fromString(gameId));
         @NotNull Token token = getTokenToMove(game, tokenId);
         token.moveTo(cellPosition);
-        updateGameData(cellPosition, token.getName(), game.getCurrentPlayerId());
+        saveGameData(game);
         return null;
     }
 
-    private void updateGameData(CellPosition cellPosition, String tokenName, UUID playerId) {
-        TokensEntity tokenEntity = tokensDaoJpa.findFirstByTokenName(tokenName);
-        PlayersEntity playerEntity = playerDaoJpa.getReferenceById(playerId);
-        if (tokenEntity != null){
-            tokenEntity.setPositionX(cellPosition.x());
-            tokenEntity.setPositionY(cellPosition.y());
-            tokenEntity.setPlayer(playerEntity);
-            tokenEntity.setPlayed(true);
-        }
-        assert tokenEntity != null;
-        tokensDaoJpa.save(tokenEntity);
-    }
 
     private Token getTokenToMove(Game game, String tokenId) {
         return Stream.of(game.getRemainingTokens(), game.getRemovedTokens(), game.getBoard().values())

@@ -1,7 +1,6 @@
 package com.example.demo.dto;
 
 import jakarta.persistence.*;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -16,8 +15,6 @@ public class PlayersEntity {
     @JoinColumn(name = "game_id", referencedColumnName = "id")
     private GamesEntity game;
 
-    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TokensEntity> tokens;
 
     // Getters et setters
     public UUID getPlayerId() {
@@ -36,12 +33,5 @@ public class PlayersEntity {
         this.game = game;
     }
 
-    public List<TokensEntity> getTokens() {
-        return tokens;
-    }
-
-    public void setTokens(List<TokensEntity> tokens) {
-        this.tokens = tokens;
-    }
 }
 

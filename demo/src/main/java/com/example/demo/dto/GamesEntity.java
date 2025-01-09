@@ -21,7 +21,7 @@ public class GamesEntity {
     @OneToMany(mappedBy = "game",  cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlayersEntity> players = new ArrayList<>();
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<TokensEntity> tokens = new ArrayList<>();
 
     // Getters et setters
