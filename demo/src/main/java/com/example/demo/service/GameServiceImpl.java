@@ -63,7 +63,7 @@ public class GameServiceImpl implements GameService {
         return List.of();
     }
 
-    private Game createGameUsingPlugin(UUID gameId, Locale locale, String gameName, int boardSize,
+    private Game createGameUsingPlugin(UUID gameId, String gameName, int boardSize,
                                        List<UUID> playersId, Collection<TokenPosition<UUID>> remainingTokensId,
                                        Collection<TokenPosition<UUID>> removedTokensId) {
         return gamePlugins.stream()
@@ -79,7 +79,7 @@ public class GameServiceImpl implements GameService {
                 .orElse(null);
     }
 
-    private Game createGameFromData(UUID gameId, Locale locale) {
+    private Game createGameFromData(UUID gameId) {
         Optional<GamesEntity> gameDaoJpaById = gameDaoJpa.findById(gameId);
 
         GamesEntity gameEntity = gameDaoJpaById.get();
@@ -89,7 +89,7 @@ public class GameServiceImpl implements GameService {
         Collection<TokenPosition<UUID>> extractRemovedTokens = extractRemovedTokens();
         Collection<TokenPosition<UUID>> extractRemainingTokens = extractBoardTokens(gameEntity);
 
-        return createGameUsingPlugin(gameId, locale, gameName, boardSize, playersId, extractRemainingTokens, extractRemovedTokens);
+        return createGameUsingPlugin(gameId, gameName, boardSize, playersId, extractRemainingTokens, extractRemovedTokens);
     }
 
     private void saveGameData(Game game) {
@@ -132,7 +132,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Game getGame(UUID gameId) {
-       return createGameFromData(gameId, Locale.FRANCE);
+       return createGameFromData(gameId);
     }
 
     public List<UUID> getAllGames() {

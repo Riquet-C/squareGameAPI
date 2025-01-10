@@ -12,7 +12,6 @@ public class TokensEntity {
     @Column(name = "id")
     private UUID id;
 
-
     private boolean isPlayed;
 
     public void setOwnerId(Optional<UUID> ownerId) {

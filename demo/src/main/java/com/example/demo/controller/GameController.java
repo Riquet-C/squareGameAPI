@@ -1,26 +1,26 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.GameCreationParams;
-import com.example.demo.dto.GamesEntity;
 import com.example.demo.service.GameService;
+import com.example.demo.service.UserValidationService;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
 import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 
 @RestController
 public class GameController {
 
     private final GameService gameService;
+    private final UserValidationService uservalidationService;
 
-    public GameController(GameService gameService) {
+    public GameController(GameService gameService, UserValidationService uservalidationService) {
         this.gameService = gameService;
+        this.uservalidationService = uservalidationService;
     }
 
     @PostMapping("/games")
@@ -49,4 +49,8 @@ public class GameController {
         gameService.deleteGame(gameId);
     }
 
+    @GetMapping("/finduser")
+    public String startGame(@RequestHeader("X-userId") int userId) {
+     return uservalidationService.validateUser(userId);
+    }
 }
